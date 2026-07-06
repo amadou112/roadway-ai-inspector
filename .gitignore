@@ -10,6 +10,7 @@ venv/
 backend/storage/
 backend/chroma_data/
 backend/.env
+backend/.streamlit/
 
 # Node / Next.js
 node_modules/

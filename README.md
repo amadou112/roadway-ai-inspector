@@ -1,18 +1,87 @@
 # Roadway AI Inspector & Design Assistant
 
-**Live demo:** https://roadway-ai-inspector-amadou112-6455s-projects.vercel.app — no sign-in
-required; every visitor is auto-authenticated as a demo account and can switch roles from the
-top bar. The public deployment runs the AI features in "stub mode" (see below) so it can't
-incur OpenAI cost no matter how much traffic it gets.
-
 An enterprise-grade, DOT/FHWA-style AI platform for roadway, bridge, pavement, traffic,
 drainage, safety, and construction inspection workflows — built as a full-stack portfolio
 project.
 
-**Stack:** FastAPI + PostgreSQL + ChromaDB + LangChain + OpenAI (backend) · Next.js 16 +
-TypeScript + Tailwind + Recharts + Leaflet (frontend) · Docker Compose.
+There are two ways to run this app, described below: a **Streamlit app** (single process,
+simplest to deploy for free) and a **FastAPI + Next.js** stack (separate backend/frontend,
+more "enterprise SaaS" in feel, run via Docker Compose). Both share the exact same database
+models and AI service logic in `backend/app/`.
 
-## Features
+## Streamlit app (recommended — simplest to run and deploy)
+
+One process, one free external Postgres, no Docker, no separate frontend/backend deploy.
+Streamlit calls the RAG/PDF/report service functions directly in-process — same code, no
+REST layer.
+
+**Run locally:**
+
+```sh
+cd backend
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+```
+
+Create `backend/.streamlit/secrets.toml`:
+
+```toml
+DATABASE_URL = "postgresql://user:pass@host/dbname?sslmode=require"  # e.g. a free Neon.tech DB
+OPENAI_API_KEY = ""  # leave blank for stub mode (no cost, canned AI text); add a real key for live AI
+```
+
+```sh
+streamlit run streamlit_app.py
+```
+
+On first run it automatically applies Alembic migrations, seeds the 7 demo role accounts and
+a demo project (sample RFIs/submittals/risks/NCRs/safety/schedule/cost data + 2 sample spec
+documents), and ingests real Delaware NBI/HPMS open data. There's no login page — use the
+**Viewing as** picker in the sidebar to switch between the 7 seeded roles.
+
+**Deploy to Streamlit Community Cloud (free, no card):**
+
+1. Get a free Postgres database — https://neon.tech (sign up, create a project, copy the
+   connection string). No card required.
+2. Go to https://share.streamlit.io → **New app** → pick this repo/branch → set
+   **main file path** to `backend/streamlit_app.py`.
+3. Under **Advanced settings → Secrets**, paste:
+   ```toml
+   DATABASE_URL = "<your Neon connection string>"
+   OPENAI_API_KEY = ""
+   ```
+4. Deploy. The app sleeps after inactivity on the free tier (a visitor after a quiet period
+   waits ~30–60s for it to wake up) and its local filesystem resets on every restart — the
+   seed script re-indexes the two sample documents into the vector store on every boot
+   specifically to handle this cleanly, so the AI Assistant demo keeps working across restarts.
+
+## FastAPI + Next.js stack (alternative architecture)
+
+Same backend service code, exposed over a REST API (`backend/app/api/`), with a separate
+Next.js 16 + TypeScript + Tailwind + Recharts + Leaflet frontend. Useful if you want a more
+polished, separately-deployable frontend, or to see a "real" microservice-style split — but
+it's two deploy targets instead of one (see `render.yaml` for the backend, Vercel for the
+frontend), which is meaningfully more setup than the Streamlit path above.
+
+```sh
+docker compose up --build
+```
+
+Starts Postgres, the FastAPI backend (migrations + seed + open-data ingestion on boot), and
+the Next.js frontend.
+
+- Frontend: http://localhost:3000
+- Backend API docs: http://localhost:8000/docs
+
+No login page here either — every visitor is auto-authenticated as a demo account, with a
+role switcher in the top bar (password `RoadwayDemo!2026`, used internally, not shown in the UI).
+
+Running without Docker: see `backend/requirements.txt` + `alembic upgrade head` +
+`uvicorn app.main:app --reload` for the backend, `npm install && npm run dev` in `frontend/`
+for the frontend (set `NEXT_PUBLIC_API_URL` if the backend runs elsewhere).
+
+## Features (both versions)
 
 - **Document RAG**: upload DOT specs, FHWA manuals, inspection reports, RFIs, submittals,
   plan sheets, and daily reports; ask questions and get cited answers.
@@ -32,83 +101,6 @@ TypeScript + Tailwind + Recharts + Leaflet (frontend) · Docker Compose.
 - **Executive reporting**: AI-generated weekly status and risk summary reports as DOT-styled
   PDFs.
 
-## Prerequisites
-
-- **Docker Desktop** (required — not installed by default on this machine; install from
-  https://www.docker.com/products/docker-desktop/ before continuing)
-- An **OpenAI API key** (optional but recommended — without one, the app runs in "stub mode"
-  with deterministic placeholder AI responses so you can still demo the full workflow)
-
-## Setup
-
-1. Copy the environment file and fill in your OpenAI key:
-
-   ```sh
-   cp .env.example .env
-   # edit .env and set OPENAI_API_KEY=sk-...
-   ```
-
-2. Start everything:
-
-   ```sh
-   docker compose up --build
-   ```
-
-   This starts Postgres, then the backend (which runs Alembic migrations, seeds demo users,
-   seeds a demo project with sample RFIs/submittals/risks/NCRs/safety/schedule/cost data and
-   two sample specification documents, and ingests real Delaware bridge/crash/pavement data),
-   then the frontend.
-
-3. Open the app:
-
-   - Frontend: http://localhost:3000
-   - Backend API docs: http://localhost:8000/docs
-
-4. There is no sign-in page — you land straight on the dashboard, auto-authenticated as the
-   Program Manager demo account. Use the **Viewing as** picker in the top bar to switch
-   between the 7 seeded roles with one click (no passwords):
-
-   | Role | Email |
-   |---|---|
-   | Program Manager | pm@demo.gov |
-   | Project Manager | projectmanager@demo.gov |
-   | Resident Engineer | resident-engineer@demo.gov |
-   | Inspector | inspector@demo.gov |
-   | Designer | designer@demo.gov |
-   | Contractor | contractor@demo.gov |
-   | DOT Executive | executive@demo.gov |
-
-   (All demo accounts share the password `RoadwayDemo!2026`, used internally by the
-   auto-login/role-switcher — there's no login form to type it into.)
-
-## Running without Docker (local dev)
-
-**Backend** (requires a local PostgreSQL instance and Python 3.12+ — this repo was
-authored on Python 3.14, which may lack prebuilt wheels for some packages; if `pip install`
-fails, install Python 3.12 alongside it and create the virtualenv with that instead):
-
-```sh
-cd backend
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-pip install -r requirements.txt
-alembic upgrade head
-python scripts/seed_roles_users.py
-python scripts/seed_demo_project.py
-python scripts/ingest_open_data.py
-uvicorn app.main:app --reload
-```
-
-**Frontend**:
-
-```sh
-cd frontend
-npm install
-npm run dev
-```
-
-Set `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:8000`) if the backend runs elsewhere.
-
 ## Architecture notes
 
 - **RAG pipeline**: PDF/text extraction → chunking (LangChain text splitters) → OpenAI
@@ -116,13 +108,13 @@ Set `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:8000`) if the backend r
   inline citations.
 - **LLM provider**: all OpenAI calls go through `app/services/llm_provider.py`, which falls
   back to deterministic stub responses when `OPENAI_API_KEY` is unset — the whole app is
-  demoable without a key. The public deployment (`render.yaml`) leaves the key blank on
-  purpose, so it always runs in stub mode and can never incur OpenAI cost; every LLM-calling
-  endpoint is additionally rate-limited (`app/core/rate_limit.py`, 5/min & 30/hour per IP) as
+  demoable without a key, at zero cost, regardless of traffic. The FastAPI version additionally
+  rate-limits every LLM-calling endpoint (`app/core/rate_limit.py`, 5/min & 30/hour per IP) as
   defense-in-depth for whenever a real key is enabled.
-- **Access model**: no login page. `AuthProvider` (`frontend/lib/auth-context.tsx`) silently
-  authenticates every visitor as a demo account on load; the top bar's role picker calls the
-  same JWT login endpoint under the hood to switch roles with no password prompt.
+- **Ephemeral-disk safe**: free hosting tiers (Streamlit Community Cloud, Render's free web
+  service) reset the local filesystem on every restart. `scripts/seed_demo_project.py`
+  re-indexes the sample documents into Chroma on every boot rather than a one-time-only seed,
+  so the RAG demo doesn't silently go stale after a restart.
 - **Open data**: bundled `backend/data/DE25.txt` is a real 2025 National Bridge Inventory
   extract for Delaware (FHWA). FARS crash data and HPMS pavement data are fetched live at
   seed time from NHTSA/USDOT public endpoints, with a graceful skip if those endpoints are

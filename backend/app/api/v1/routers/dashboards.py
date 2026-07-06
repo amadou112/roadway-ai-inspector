@@ -90,11 +90,12 @@ def safety_by_category(project_id: uuid.UUID, db: Session = Depends(get_db), _: 
 
 @router.get("/ncr-trend", response_model=list[CountByLabel])
 def ncr_trend(project_id: uuid.UUID, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    month_expr = func.to_char(NonConformanceReport.identified_date, "YYYY-MM")
     rows = (
-        db.query(func.to_char(NonConformanceReport.identified_date, "YYYY-MM"), func.count(NonConformanceReport.id))
+        db.query(month_expr, func.count(NonConformanceReport.id))
         .filter(NonConformanceReport.project_id == project_id, NonConformanceReport.identified_date.isnot(None))
-        .group_by(func.to_char(NonConformanceReport.identified_date, "YYYY-MM"))
-        .order_by(func.to_char(NonConformanceReport.identified_date, "YYYY-MM"))
+        .group_by(month_expr)
+        .order_by(month_expr)
         .all()
     )
     return [CountByLabel(label=label, count=count) for label, count in rows]
