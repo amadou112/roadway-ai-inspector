@@ -235,6 +235,14 @@ def seed_cost(db, project_id):
 
 
 def seed_documents(db, project, uploader_email="pm@demo.gov"):
+    """Find-or-create the two sample Document rows, then *always* rewrite the
+    file to local disk and re-embed it into the vector store. On a host with
+    no persistent disk (e.g. Render's free tier), both the uploaded file and
+    the Chroma index reset on every restart even though the Postgres Document
+    row survives — so re-ingesting unconditionally on every boot is what
+    keeps the RAG assistant demo working across restarts, rather than a
+    one-time-only seed.
+    """
     from app.models.user import User
 
     uploader = db.query(User).filter(User.email == uploader_email).first()
@@ -249,16 +257,22 @@ def seed_documents(db, project, uploader_email="pm@demo.gov"):
         if not source_path.exists():
             continue
 
-        document = Document(
-            project_id=project.id,
-            title=title,
-            doc_type=doc_type,
-            file_path="",
-            uploaded_by=uploader.id if uploader else None,
+        document = (
+            db.query(Document)
+            .filter(Document.project_id == project.id, Document.title == title)
+            .first()
         )
-        db.add(document)
-        db.commit()
-        db.refresh(document)
+        if document is None:
+            document = Document(
+                project_id=project.id,
+                title=title,
+                doc_type=doc_type,
+                file_path="",
+                uploaded_by=uploader.id if uploader else None,
+            )
+            db.add(document)
+            db.commit()
+            db.refresh(document)
 
         content = source_path.read_bytes()
         file_path = ingestion.save_upload(str(project.id), str(document.id), filename, content, settings.storage_dir)
@@ -271,25 +285,24 @@ def seed_documents(db, project, uploader_email="pm@demo.gov"):
 def run() -> None:
     db = SessionLocal()
     try:
-        existing = db.query(Project).filter(Project.name == DEMO_PROJECT_NAME).first()
-        if existing:
-            print(f"Demo project '{DEMO_PROJECT_NAME}' already exists — skipping seed.")
-            return
-
-        project = seed_project(db)
-        seed_rfis(db, project.id)
-        seed_submittals(db, project.id)
-        seed_risks(db, project.id)
-        seed_ncrs(db, project.id)
-        seed_safety(db, project.id)
-        seed_schedule(db, project.id)
-        seed_cost(db, project.id)
-        db.commit()
+        project = db.query(Project).filter(Project.name == DEMO_PROJECT_NAME).first()
+        if project is None:
+            project = seed_project(db)
+            seed_rfis(db, project.id)
+            seed_submittals(db, project.id)
+            seed_risks(db, project.id)
+            seed_ncrs(db, project.id)
+            seed_safety(db, project.id)
+            seed_schedule(db, project.id)
+            seed_cost(db, project.id)
+            db.commit()
+            print(f"Seeded demo project '{DEMO_PROJECT_NAME}' with sample RFIs, submittals, risks, NCRs, "
+                  f"safety issues, schedule, and cost data.")
+        else:
+            print(f"Demo project '{DEMO_PROJECT_NAME}' already exists — skipping PM data reseed.")
 
         seed_documents(db, project)
-
-        print(f"Seeded demo project '{DEMO_PROJECT_NAME}' with sample RFIs, submittals, risks, NCRs, "
-              f"safety issues, schedule, cost data, and 2 sample specification documents.")
+        print("Ensured sample specification documents exist and are indexed in the vector store.")
     finally:
         db.close()
 

@@ -1,26 +1,26 @@
-databases:
-  - name: roadway-ai-db
-    plan: basic-256mb
-    databaseName: roadway_ai
-    user: roadway
+# No `databases:` section on purpose — Render's blueprint Postgres has no
+# free plan (basic-256mb minimum, requires a card). Instead, use a genuinely
+# free external Postgres (e.g. Neon.tech, no card required) and paste its
+# connection string into DATABASE_URL when applying this blueprint.
+#
+# No persistent disk either (free web services can't attach one) — the
+# container's local filesystem (uploaded files, Chroma vectors) resets on
+# every restart/redeploy. The seed script re-ingests the two sample spec
+# documents on every boot specifically to handle this cleanly.
 
 services:
   - name: roadway-ai-backend
     type: web
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /health
-    disk:
-      name: roadway-ai-data
-      mountPath: /app/data
-      sizeGB: 5
     envVars:
+      # Paste a free Postgres connection string here (e.g. from neon.tech) —
+      # postgres:// or postgresql:// both work, the app normalizes the driver.
       - key: DATABASE_URL
-        fromDatabase:
-          name: roadway-ai-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: JWT_ALGORITHM
@@ -38,9 +38,5 @@ services:
         value: gpt-4o-mini
       - key: OPENAI_EMBEDDING_MODEL
         value: text-embedding-3-small
-      - key: STORAGE_DIR
-        value: /app/data/storage
-      - key: CHROMA_DIR
-        value: /app/data/chroma
       - key: FRONTEND_ORIGIN
         sync: false
