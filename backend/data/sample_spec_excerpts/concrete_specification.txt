@@ -1,0 +1,48 @@
+DELAWARE DEPARTMENT OF TRANSPORTATION
+STANDARD SPECIFICATIONS FOR ROAD AND BRIDGE CONSTRUCTION
+SECTION 812 — PORTLAND CEMENT CONCRETE (SAMPLE EXCERPT FOR DEMO PURPOSES)
+
+812.01 DESCRIPTION
+This work consists of furnishing and placing Portland cement concrete for bridge
+decks, substructures, and roadway structures in accordance with these
+specifications and the dimensions shown on the plans.
+
+812.02 MATERIALS
+(a) Cement shall conform to AASHTO M 85, Type II, unless otherwise specified.
+(b) Coarse and fine aggregates shall conform to Section 703.
+(c) Water shall be free of oil, acid, alkali, organic matter, or other
+    deleterious substances.
+(d) Air-entraining admixtures shall conform to AASHTO M 154.
+
+812.03 CONCRETE MIX DESIGN
+Class A concrete (bridge decks) shall attain a minimum 28-day compressive
+strength of 4,500 psi. Class B concrete (substructures, footings) shall attain
+a minimum 28-day compressive strength of 3,500 psi. The Contractor shall
+submit a mix design for each class of concrete for the Engineer's approval no
+fewer than 21 calendar days prior to the first placement.
+
+812.04 CURING
+All exposed concrete surfaces shall be cured for a minimum of 7 calendar days
+using one of the following methods: (1) continuous water curing, (2) curing
+compound conforming to AASHTO M 148 applied within 30 minutes of finishing, or
+(3) impervious sheeting. Curing compound shall not be used on surfaces that
+will later receive a bonded overlay or waterproofing membrane.
+
+812.05 COLD WEATHER PLACEMENT
+Concrete shall not be placed when the ambient temperature is below 40°F unless
+the Contractor submits a cold-weather concreting plan for the Engineer's
+approval, including provisions for maintaining the concrete temperature above
+50°F for a minimum of 72 hours after placement.
+
+812.06 REINFORCING STEEL COVER
+Minimum clear cover over reinforcing steel shall be 2.5 inches for bridge deck
+top mat exposed to deicing chemicals, and 1.5 inches for substructure elements
+not exposed to deicing chemicals, unless otherwise noted on the plans.
+Deficient cover identified during inspection shall be documented on a
+Non-Conformance Report and corrected prior to placement of concrete.
+
+812.07 ACCEPTANCE TESTING
+Compressive strength shall be verified by test cylinders cast in accordance
+with AASHTO T 23, one set per 50 cubic yards placed or per placement, whichever
+is more frequent. Any test result below 90 percent of the specified strength
+shall be reported immediately to the Resident Engineer.

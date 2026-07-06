@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Backend runtime data
+backend/storage/
+backend/chroma_data/
+backend/.env
+
+# Node / Next.js
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+npm-debug.log*
+
+# Unused raw photo dump (only public/images/hero-construction.jpg is actually used)
+frontend/public/photo/
+
+# Env files
+.env
+*.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log

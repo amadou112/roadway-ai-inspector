@@ -1,0 +1,58 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --background: #f4f7fb;
+  --foreground: #14243b;
+
+  --color-federal-950: #0a1c30;
+  --color-federal-900: #0b3d62;
+  --color-federal-800: #114a76;
+  --color-federal-700: #175a8e;
+  --color-federal-600: #206ba8;
+  --color-federal-500: #2f80bf;
+  --color-federal-100: #e6eef7;
+  --color-federal-50: #f4f8fc;
+
+  --color-accent-gold: #c9a227;
+  --color-status-good: #1b7a43;
+  --color-status-fair: #b8860b;
+  --color-status-poor: #b3261e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-federal-950: var(--color-federal-950);
+  --color-federal-900: var(--color-federal-900);
+  --color-federal-800: var(--color-federal-800);
+  --color-federal-700: var(--color-federal-700);
+  --color-federal-600: var(--color-federal-600);
+  --color-federal-500: var(--color-federal-500);
+  --color-federal-100: var(--color-federal-100);
+  --color-federal-50: var(--color-federal-50);
+  --color-accent-gold: var(--color-accent-gold);
+  --color-status-good: var(--color-status-good);
+  --color-status-fair: var(--color-status-fair);
+  --color-status-poor: var(--color-status-poor);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.card {
+  background: white;
+  border: 1px solid #dde5ee;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(11, 61, 98, 0.06);
+}
+
+.leaflet-container {
+  border-radius: 0.75rem;
+}

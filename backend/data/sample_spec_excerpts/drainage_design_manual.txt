@@ -1,0 +1,43 @@
+FEDERAL HIGHWAY ADMINISTRATION
+HYDRAULIC ENGINEERING CIRCULAR — ROADWAY DRAINAGE DESIGN
+CHAPTER 4 — STORM DRAIN SYSTEMS (SAMPLE EXCERPT FOR DEMO PURPOSES)
+
+4.1 DESIGN STORM FREQUENCY
+Storm drain systems for interstate and freeway facilities shall be designed to
+convey, at a minimum, the peak flow from a 10-year design storm without surcharge.
+Cross culverts and structures within the floodplain shall be evaluated for the
+100-year event to confirm no increase in upstream flood elevation.
+
+4.2 PIPE MATERIALS AND MINIMUM COVER
+Reinforced concrete pipe (RCP) is the preferred material beneath roadway
+pavement sections carrying interstate traffic. Minimum cover over the crown of
+the pipe shall be 1 foot for pipe diameters up to 36 inches, and 2 feet for
+larger diameters, measured from the top of pipe to the bottom of pavement
+structure. Corrugated metal pipe (CMP) may be permitted for side-drain
+applications outside the roadway prism, subject to Department approval.
+
+4.3 INLET SPACING AND CAPACITY
+Curb inlets on grade shall be spaced such that gutter spread does not exceed
+one-half of the travel lane width during the design storm. Sag inlets shall be
+sized to pass the design flow with a maximum ponding depth of 0.5 feet above
+the gutter flow line, plus a debris/clogging factor of 50 percent applied to
+the theoretical inlet capacity.
+
+4.4 UTILITY CONFLICTS
+Where proposed storm drain alignments conflict with existing utilities, the
+Contractor shall notify the Engineer and submit a Request for Information
+(RFI) identifying the conflict, proposed resolution, and any associated cost
+or schedule impact prior to proceeding with excavation in the conflict area.
+
+4.5 CONSTRUCTION SEQUENCING AND MAINTENANCE OF TRAFFIC
+Storm drain installation beneath active travel lanes shall be sequenced to
+minimize the duration of lane closures and shall conform to the approved
+Maintenance of Traffic (MOT) plan. Temporary drainage measures, including
+diversion ditches or temporary pipe, shall be provided to prevent ponding on
+travel lanes during construction.
+
+4.6 INSPECTION AND ACCEPTANCE
+Prior to backfill, all storm drain pipe joints and structures shall be
+inspected for proper bedding, alignment, and joint sealing. Deficiencies shall
+be corrected before backfilling. Post-construction CCTV inspection is required
+for all mainline storm drain pipe 24 inches in diameter or greater.
