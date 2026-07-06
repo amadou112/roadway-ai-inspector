@@ -1,6 +1,9 @@
 # Roadway AI Inspector & Design Assistant
 
-https://roadway-ai-inspector-amadou112-6455s-projects.vercel.app/login
+**Live demo:** https://roadway-ai-inspector-amadou112-6455s-projects.vercel.app — no sign-in
+required; every visitor is auto-authenticated as a demo account and can switch roles from the
+top bar. The public deployment runs the AI features in "stub mode" (see below) so it can't
+incur OpenAI cost no matter how much traffic it gets.
 
 An enterprise-grade, DOT/FHWA-style AI platform for roadway, bridge, pavement, traffic,
 drainage, safety, and construction inspection workflows — built as a full-stack portfolio
@@ -61,7 +64,9 @@ TypeScript + Tailwind + Recharts + Leaflet (frontend) · Docker Compose.
    - Frontend: http://localhost:3000
    - Backend API docs: http://localhost:8000/docs
 
-4. Sign in with any demo account (password: `RoadwayDemo!2026`):
+4. There is no sign-in page — you land straight on the dashboard, auto-authenticated as the
+   Program Manager demo account. Use the **Viewing as** picker in the top bar to switch
+   between the 7 seeded roles with one click (no passwords):
 
    | Role | Email |
    |---|---|
@@ -72,6 +77,9 @@ TypeScript + Tailwind + Recharts + Leaflet (frontend) · Docker Compose.
    | Designer | designer@demo.gov |
    | Contractor | contractor@demo.gov |
    | DOT Executive | executive@demo.gov |
+
+   (All demo accounts share the password `RoadwayDemo!2026`, used internally by the
+   auto-login/role-switcher — there's no login form to type it into.)
 
 ## Running without Docker (local dev)
 
@@ -108,7 +116,13 @@ Set `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:8000`) if the backend r
   inline citations.
 - **LLM provider**: all OpenAI calls go through `app/services/llm_provider.py`, which falls
   back to deterministic stub responses when `OPENAI_API_KEY` is unset — the whole app is
-  demoable without a key.
+  demoable without a key. The public deployment (`render.yaml`) leaves the key blank on
+  purpose, so it always runs in stub mode and can never incur OpenAI cost; every LLM-calling
+  endpoint is additionally rate-limited (`app/core/rate_limit.py`, 5/min & 30/hour per IP) as
+  defense-in-depth for whenever a real key is enabled.
+- **Access model**: no login page. `AuthProvider` (`frontend/lib/auth-context.tsx`) silently
+  authenticates every visitor as a demo account on load; the top bar's role picker calls the
+  same JWT login endpoint under the hood to switch roles with no password prompt.
 - **Open data**: bundled `backend/data/DE25.txt` is a real 2025 National Bridge Inventory
   extract for Delaware (FHWA). FARS crash data and HPMS pavement data are fetched live at
   seed time from NHTSA/USDOT public endpoints, with a graceful skip if those endpoints are
