@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Sidebar } from "@/components/nav/Sidebar";
 import { Topbar } from "@/components/nav/Topbar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { user, loading, error } = useAuth();
 
-  useEffect(() => {
-    if (!loading && !user) router.replace("/login");
-  }, [loading, user, router]);
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-1 items-center justify-center bg-federal-50 p-6 text-center">
+        <p className="max-w-sm text-sm text-status-poor">{error}</p>
+      </div>
+    );
+  }
 
   if (loading || !user) {
     return (

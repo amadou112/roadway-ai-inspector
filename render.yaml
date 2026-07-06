@@ -27,8 +27,13 @@ services:
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "480"
+      # Left blank on purpose: the public deployment runs in "stub mode" (see
+      # app/services/llm_provider.py) with no real OpenAI calls, so it can't
+      # rack up API cost no matter how much traffic it gets. Only add a real
+      # key here (Render dashboard > Environment) for a deliberate, temporary
+      # live demo, and remove it again afterward.
       - key: OPENAI_API_KEY
-        sync: false
+        value: ""
       - key: OPENAI_CHAT_MODEL
         value: gpt-4o-mini
       - key: OPENAI_EMBEDDING_MODEL

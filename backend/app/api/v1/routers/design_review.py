@@ -2,12 +2,13 @@ import os
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.deps import get_current_user
+from app.core.rate_limit import LLM_RATE_LIMIT, limiter
 from app.db.session import get_db
 from app.models.design_review import DesignReviewFinding, DesignReviewSubmission
 from app.models.document import Document
@@ -32,7 +33,9 @@ def list_reviews(project_id: uuid.UUID, db: Session = Depends(get_db), _: User =
 
 
 @router.post("", response_model=DesignReviewSubmissionOut)
+@limiter.limit(LLM_RATE_LIMIT)
 def create_review(
+    request: Request,
     project_id: uuid.UUID,
     payload: DesignReviewSubmissionCreate,
     db: Session = Depends(get_db),

@@ -5,17 +5,19 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
-    router.replace(user ? "/dashboard" : "/login");
-  }, [loading, user, router]);
+    if (loading || error) return;
+    if (user) router.replace("/dashboard");
+  }, [loading, error, user, router]);
 
   return (
-    <div className="flex min-h-screen flex-1 items-center justify-center bg-federal-950 text-white">
-      <p className="text-sm text-federal-100/70">Loading Roadway AI Inspector &amp; Design Assistant…</p>
+    <div className="flex min-h-screen flex-1 flex-col items-center justify-center gap-3 bg-federal-950 text-white">
+      <p className="text-sm text-federal-100/70">
+        {error || "Loading Roadway AI Inspector & Design Assistant…"}
+      </p>
     </div>
   );
 }
