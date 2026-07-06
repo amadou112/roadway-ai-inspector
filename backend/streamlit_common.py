@@ -20,10 +20,11 @@ if str(BACKEND_DIR) not in sys.path:
 # Streamlit Cloud secrets (st.secrets) aren't automatically exported as env
 # vars, but app.core.config reads Settings from the environment / .env file.
 # Copy them over before any app.* module (which reads settings at import
-# time via get_settings()) gets imported.
+# time via get_settings()) gets imported. Real secret values always win over
+# whatever (if anything) is already in the process environment.
 try:
     for key, value in st.secrets.items():
-        os.environ.setdefault(key, str(value))
+        os.environ[key] = str(value)
 except Exception:  # noqa: BLE001 — no secrets.toml locally, that's fine
     pass
 
@@ -59,23 +60,88 @@ CATEGORICAL = ["#2a78d6", "#1baf7a", "#eda100", "#008300", "#4a3aa7", "#e34948",
 FEDERAL_BLUE = "#0b3d62"
 
 
+# Only markers specific enough that they could never appear in a real,
+# filled-in production connection string — "localhost" alone is NOT one of
+# these, since local development legitimately points at localhost.
+_PLACEHOLDER_MARKERS = ("<your", "roadway_dev_password", "your-neon", "user:pass@host")
+
+
+def _diagnose_database_url(url: str) -> str | None:
+    """Returns a human-readable problem description, or None if the URL at
+    least *looks* like a real Postgres connection string. Catches the most
+    common Streamlit Cloud misconfigurations before we ever attempt a
+    connection: the DATABASE_URL secret being blank, or still holding this
+    repo's local-dev default password / a copy-pasted placeholder.
+    """
+    if not url or not url.strip():
+        return "`DATABASE_URL` is empty. Add it under Settings → Secrets for this app."
+    lowered = url.lower()
+    for marker in _PLACEHOLDER_MARKERS:
+        if marker in lowered:
+            return (
+                f"`DATABASE_URL` still looks like the local-dev default or a placeholder "
+                f"(contains '{marker}'). Paste your real Postgres connection string "
+                f"(e.g. from neon.tech) into Settings → Secrets."
+            )
+    return None
+
+
+def _redact_password(message: str, url: str) -> str:
+    """Belt-and-suspenders: strip the literal password out of an exception
+    message before it's displayed, in case the DB driver ever echoes the
+    raw DSN back in an error string."""
+    try:
+        from sqlalchemy.engine import make_url
+
+        password = make_url(url).password
+        if password:
+            message = message.replace(password, "***")
+    except Exception:  # noqa: BLE001 — best-effort only
+        pass
+    return message
+
+
 @st.cache_resource(show_spinner="Starting up Roadway AI Inspector…")
 def init_app():
     """Runs once per app process: migrations, demo user/project seed, and
     real Delaware open-data ingestion. Safe to call repeatedly (every
     seed/ingest step is idempotent) but cached so Streamlit reruns don't
     repeat it on every widget interaction.
+
+    Any failure here is caught and shown in full via st.error — Streamlit's
+    default top-level handler redacts uncaught exception text (to avoid
+    leaking secrets in generic cases), which hides the one thing you need to
+    actually fix a bad DATABASE_URL. We print the exception type/message
+    ourselves instead (never the URL itself) so the real cause is visible.
     """
-    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
-    cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
-    cfg.set_main_option("sqlalchemy.url", get_settings().database_url)
-    command.upgrade(cfg, "head")
+    database_url = get_settings().database_url
+    problem = _diagnose_database_url(database_url)
+    if problem:
+        st.error(f"**Can't start — database not configured.**\n\n{problem}")
+        st.stop()
 
-    from scripts import ingest_open_data, seed_demo_project, seed_roles_users
+    try:
+        cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+        cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
+        cfg.set_main_option("sqlalchemy.url", database_url)
+        command.upgrade(cfg, "head")
 
-    seed_roles_users.run()
-    seed_demo_project.run()
-    ingest_open_data.run()
+        from scripts import ingest_open_data, seed_demo_project, seed_roles_users
+
+        seed_roles_users.run()
+        seed_demo_project.run()
+        ingest_open_data.run()
+    except Exception as exc:  # noqa: BLE001 — surface it deliberately, see docstring
+        safe_message = _redact_password(str(exc), database_url)
+        st.error(
+            "**Can't start — database setup failed.**\n\n"
+            f"`{type(exc).__module__}.{type(exc).__name__}`: {safe_message}\n\n"
+            "Common causes: the Postgres server is unreachable or rejecting the connection "
+            "(check the host/port), the password is wrong, or the connection string is "
+            "missing `?sslmode=require` (Neon requires this)."
+        )
+        st.stop()
+
     return True
 
 
