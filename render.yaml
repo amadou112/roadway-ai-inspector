@@ -1,0 +1,41 @@
+databases:
+  - name: roadway-ai-db
+    plan: basic-256mb
+    databaseName: roadway_ai
+    user: roadway
+
+services:
+  - name: roadway-ai-backend
+    type: web
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    disk:
+      name: roadway-ai-data
+      mountPath: /app/data
+      sizeGB: 5
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: roadway-ai-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_CHAT_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: STORAGE_DIR
+        value: /app/data/storage
+      - key: CHROMA_DIR
+        value: /app/data/chroma
+      - key: FRONTEND_ORIGIN
+        sync: false
